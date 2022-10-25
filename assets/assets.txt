@@ -1,0 +1,21 @@
+Texture TexIdle1 assets/textures/virtual_guy_idle.png
+Texture TexRun1 assets/textures/virtual_guy_run.png
+Texture TexJump1 assets/textures/virtual_guy_jump.png
+Texture TexFall1 assets/textures/virtual_guy_fall.png
+Texture TexIdle2 assets/textures/ninja_frog_idle.png
+Texture TexJump2 assets/textures/ninja_frog_jump.png
+Texture TexFall2 assets/textures/ninja_frog_fall.png
+Texture TexRun2 assets/textures/ninja_frog_run.png
+Texture TexBullet assets/textures/bullet.png
+Texture TexTile assets/textures/tile.png
+Animation Idle1 TexIdle1 11 2
+Animation Run1 TexRun1 12 2
+Animation Jump1 TexJump1 1 2
+Animation Fall1 TexFall1 1 2
+Animation Idle2 TexIdle2 11 2
+Animation Jump2 TexJump2 1 2
+Animation Fall2 TexFall2 1 2
+Animation Run2 TexRun2 11 2
+Animation Bullet TexBullet 1 2
+Animation Ground TexTile 1 2
+Font Monocraft assets/fonts/Monocraft.ttf
