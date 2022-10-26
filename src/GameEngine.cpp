@@ -37,14 +37,7 @@ void GameEngine::init(const std::string& path, const std::string& levelConfigPat
                 istr >> str;
                 std::string filePath = str;
 
-                sf::Texture texture;
-                if(!texture.loadFromFile(filePath))
-                {
-                    std::cout << "Couldn't load texture " << filePath << "\n";
-                    exit(EXIT_FAILURE);
-                }
-
-                m_assets.addTexture(textureName, texture);
+                m_assets.addTexture(textureName, filePath);
             }
             else if(str == "Animation")
             {
@@ -57,8 +50,7 @@ void GameEngine::init(const std::string& path, const std::string& levelConfigPat
                 istr >> str;
                 int speed = std::stoi(str);
 
-                Animation animation(name, m_assets.getTexture(textureName), frameCount, speed);
-                m_assets.addAnimation(name, animation);
+                m_assets.addAnimation(name, textureName, frameCount, speed);
             }
             else if(str == "Font")
             {
@@ -67,14 +59,7 @@ void GameEngine::init(const std::string& path, const std::string& levelConfigPat
                 istr >> str;
                 std::string fontPath = str;
 
-                sf::Font font;
-                if(!font.loadFromFile(fontPath))
-                {
-                    std::cout << "Couldn't load Font " << fontPath << "\n";
-                    exit(EXIT_FAILURE);
-                }
-
-                m_assets.addFont(fontName, font);
+                m_assets.addFont(fontName, fontPath);
             }
         }
     }

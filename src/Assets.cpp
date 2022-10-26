@@ -1,18 +1,18 @@
 #include "Assets.hpp"
 
-void Assets::addTexture(std::string& name, sf::Texture& texture)
+void Assets::addTexture(std::string const& name, std::string const& path)
 {
-    m_textures[name] = texture;
+    m_textures[name].loadFromFile(path);
 }
 
-void Assets::addFont(const std::string& name, sf::Font& font)
+void Assets::addFont(std::string const& name, std::string const& path)
 {
-    m_fonts[name] = font;
+    m_fonts[name].loadFromFile(path);
 }
 
-void Assets::addAnimation(std::string& name, Animation& animation)
+void Assets::addAnimation(std::string const& name, std::string const& textureName, int frameCount, int speed)
 {
-    m_animations[name] = animation;
+    m_animations[name] = Animation(name, getTexture(textureName), frameCount, speed);
 }
 
 const sf::Texture& Assets::getTexture(const std::string& name) const

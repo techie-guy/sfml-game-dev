@@ -51,14 +51,13 @@ void ScenePlay::loadLevel(const std::string& filename)
                 istr >> str;
                 std::string animationName = str;
                 istr >> str;
-                float x = (float)std::stoi(str);
+                int x = std::stoi(str);
                 istr >> str;
-                float y = (float)std::stoi(str);
+                int y = std::stoi(str);
 
                 auto tile = m_entityManager.addEntity("tile");
                 tile->addComponent<CAnimation>(m_game->assets().getAnimation(animationName), true);
-                Vec2 tilePos = gridToMidPixel(x, y, tile);
-                tile->addComponent<CTransform>(tilePos, tilePos, Vec2(1, 1), Vec2(0, 0), 0);
+                tile->addComponent<CTransform>(gridToMidPixel(x, y, tile), gridToMidPixel(x, y, tile), Vec2(1, 1), Vec2(0, 0), 0);
                 tile->addComponent<CBoundingBox>(tile->getComponent<CAnimation>().animation.size());
             }
             else if(str == "Player")
@@ -175,7 +174,6 @@ void ScenePlay::sAnimation()
         entity->getComponent<CAnimation>().animation.sprite().setPosition(entity->getComponent<CTransform>().pos.x, entity->getComponent<CTransform>().pos.y);
         entity->getComponent<CAnimation>().animation.sprite().setScale(entity->getComponent<CTransform>().scale.x, entity->getComponent<CTransform>().scale.y);
         entity->getComponent<CAnimation>().animation.sprite().setRotation(entity->getComponent<CTransform>().angle);
-        // entity->getComponent<CAnimation>().animation.m_currentFrame++;
         entity->getComponent<CAnimation>().animation.update();
 
         if(!entity->getComponent<CAnimation>().repeat)
@@ -208,6 +206,11 @@ void ScenePlay::sMovement()
     {
         spawnBullet();
         m_player->getComponent<CInput>().canShoot = false;
+    }
+
+    if(playerVelocity.x == 0 && playerVelocity.y == 0)
+    {
+        m_player->getComponent<CState>().state = "idle";
     }
 
     m_player->getComponent<CTransform>().velocity = playerVelocity;
@@ -267,17 +270,18 @@ void ScenePlay::sCollision()
             {
                 if(m_player->getComponent<CTransform>().pos.y < tile->getComponent<CTransform>().pos.y)
                 {
-                    m_player->getComponent<CState>().state = "idle";
                     m_player->getComponent<CInput>().canJump = false;
                     m_player->getComponent<CTransform>().pos.y -= currentOverlap.y;
                     m_player->getComponent<CTransform>().velocity.y = 0;
+                    if(m_player->getComponent<CTransform>().velocity.x == 0)
+                        m_player->getComponent<CState>().state = "idle";
                 }
                 else if(m_player->getComponent<CTransform>().pos.y > tile->getComponent<CTransform>().pos.y)
                 {
                     m_player->getComponent<CTransform>().pos.y += currentOverlap.y;
                     m_player->getComponent<CInput>().canJump = true;
                     m_player->getComponent<CTransform>().velocity.y = 0;
-                    m_player->getComponent<CState>().state = "idle";
+                    // m_player->getComponent<CState>().state = "idle";
                 }
             }
         }
@@ -302,6 +306,23 @@ void ScenePlay::sCollision()
                 m_player->getComponent<CInput>().canJump = true;
                 m_player->getComponent<CState>().state = "fall";
             }
+        }
+
+        if(m_player->getComponent<CTransform>().pos.x > m_game->window().getSize().x)
+        {
+            m_player->getComponent<CTransform>().pos.x = m_game->window().getSize().x;
+        }
+        else if(m_player->getComponent<CTransform>().pos.y > m_game->window().getSize().y)
+        {
+            m_player->getComponent<CTransform>().pos.y = m_playerConfig.Y;
+        }
+        else if(m_player->getComponent<CTransform>().pos.x < 0)
+        {
+            m_player->getComponent<CTransform>().pos.x = 0;
+        }
+        else if(m_player->getComponent<CTransform>().pos.y < 0)
+        {
+            m_player->getComponent<CTransform>().pos.y = 0;
         }
 
         for(auto& bullet : m_entityManager.getEntities("bullet"))

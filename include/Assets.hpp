@@ -18,9 +18,9 @@ private:
 public:
     Assets() {};
     
-    void addTexture(std::string& name, sf::Texture& texture);
-    void addAnimation(std::string& name, Animation& animation);
-    void addFont(const std::string& name, sf::Font& font);
+    void addTexture(std::string const& name, std::string const& path);
+    void addAnimation(std::string const& name, std::string const& textureName, int frameCount, int speed);
+    void addFont(std::string const& name, std::string const& path);
     // void addSound(std::string& name, sf::Sound& sound);
 
     const sf::Texture& getTexture(const std::string& name) const;

@@ -15,7 +15,11 @@ private:
     Vec2 m_size = {1, 1};
 
 public:
-    Animation() {};
+    Animation() {}
+    ~Animation()
+    {
+        std::cout << m_name << " Eliminated!\n";
+    }
     Animation(const std::string& name, const sf::Texture& texture, size_t frameCount, size_t speed);
 
     void update();

@@ -79,5 +79,5 @@ public:
     Animation animation;
     bool repeat = false;
     CAnimation() {}
-    CAnimation(const Animation& a, bool r) : animation(a), repeat(r) {}
+    CAnimation(const Animation a, bool r) : animation(a), repeat(r) {}
 };
