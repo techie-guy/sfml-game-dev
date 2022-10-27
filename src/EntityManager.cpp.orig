@@ -24,9 +24,7 @@ EntityVec& EntityManager::getEntities(const std::string& tag)
 
 void EntityManager::removeDeadEntites(EntityVec& vec)
 {
-    auto deadEntities = std::remove_if(vec.begin(), vec.end(), [](std::shared_ptr<Entity>& entity) {
-        return entity->isActive() == false;
-    });
+    auto deadEntities = std::remove_if(vec.begin(), vec.end(), [](std::shared_ptr<Entity>& entity) { return entity->isActive() == false; });
     vec.erase(deadEntities, vec.end());
 }
 

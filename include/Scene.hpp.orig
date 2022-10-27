@@ -2,7 +2,7 @@
 
 #include "Action.hpp"
 #include "EntityManager.hpp"
-#include "Vec2.hpp"
+#include "Vec2.hpp" 
 
 #include <memory>
 #include <string>

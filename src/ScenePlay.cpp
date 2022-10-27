@@ -169,6 +169,8 @@ void ScenePlay::sAnimation()
         m_player->addComponent<CAnimation>(m_game->assets().getAnimation(m_playerConfig.FALL), true);
     }
 
+    // std::cout << m_player->getComponent<CTransform>().pos << "\n";
+
     for(auto& entity : m_entityManager.getEntities())
     {
         entity->getComponent<CAnimation>().animation.sprite().setPosition(entity->getComponent<CTransform>().pos.x, entity->getComponent<CTransform>().pos.y);

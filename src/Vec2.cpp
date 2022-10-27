@@ -81,3 +81,9 @@ Vec2& Vec2::normalize()
 
     return *this;
 }
+
+std::ostream& operator << (std::ostream& stream, const Vec2& rhs)
+{
+    stream << "[" << rhs.x << "," << rhs.y << "]";
+    return stream;
+}

@@ -70,7 +70,7 @@ void GameEngine::init(const std::string& path, const std::string& levelConfigPat
 void GameEngine::update()
 {
     while (m_running)
-    {
+    {        
         m_window.clear();
 
         sUserInput();

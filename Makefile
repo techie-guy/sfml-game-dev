@@ -1,5 +1,5 @@
 CC = clang++
-CFLAGS = -Wall -std=c++17 -g
+CFLAGS = -Wall -std=c++20 -g
 LFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 SOURCE_FILES = src/*.cpp
 INCLUDE_DIR = include
@@ -18,9 +18,6 @@ build:
 
 run:
 	./$(OUTPUT_DIR)/$(TARGET_NAME)
-
-debug:
-	@lldb ./$(OUTPUT_DIR)/$(TARGET_NAME).exe
 
 clean:
 	@rm -r $(OUTPUT_DIR)
