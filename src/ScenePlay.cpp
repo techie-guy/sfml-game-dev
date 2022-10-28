@@ -154,22 +154,24 @@ void ScenePlay::sAnimation()
 {
     if(m_player->getComponent<CState>().state == "run")
     {
-        m_player->addComponent<CAnimation>(m_game->assets().getAnimation(m_playerConfig.RUN), true);
+        if(m_player->getComponent<CAnimation>().animation.name() != m_game->assets().getAnimation(m_playerConfig.RUN).name())
+            m_player->getComponent<CAnimation>().animation = m_game->assets().getAnimation(m_playerConfig.RUN);
     }
     else if(m_player->getComponent<CState>().state == "idle")
     {
-        m_player->addComponent<CAnimation>(m_game->assets().getAnimation(m_playerConfig.IDLE), true);
+        if(m_player->getComponent<CAnimation>().animation.name() != m_game->assets().getAnimation(m_playerConfig.IDLE).name())
+            m_player->getComponent<CAnimation>().animation = m_game->assets().getAnimation(m_playerConfig.IDLE);
     }
     else if(m_player->getComponent<CState>().state == "jump")
     {
-        m_player->addComponent<CAnimation>(m_game->assets().getAnimation(m_playerConfig.JUMP), true);
+        if(m_player->getComponent<CAnimation>().animation.name() != m_game->assets().getAnimation(m_playerConfig.JUMP).name())
+            m_player->getComponent<CAnimation>().animation = m_game->assets().getAnimation(m_playerConfig.JUMP);
     }
     else if(m_player->getComponent<CState>().state == "fall")
     {
-        m_player->addComponent<CAnimation>(m_game->assets().getAnimation(m_playerConfig.FALL), true);
+        if(m_player->getComponent<CAnimation>().animation.name() != m_game->assets().getAnimation(m_playerConfig.FALL).name())
+            m_player->getComponent<CAnimation>().animation = m_game->assets().getAnimation(m_playerConfig.FALL);
     }
-
-    // std::cout << m_player->getComponent<CTransform>().pos << "\n";
 
     for(auto& entity : m_entityManager.getEntities())
     {

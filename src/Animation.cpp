@@ -21,17 +21,17 @@ bool Animation::hasEnded() const
     return m_currentFrame > m_frameCount;
 }
 
-std::string& Animation::name()
+const std::string& Animation::name() const
 {
     return m_name;
 }
 
-size_t Animation::frameCount()
+const size_t Animation::frameCount() const
 {
     return m_frameCount;
 }
 
-Vec2& Animation::size()
+const Vec2& Animation::size() const
 {
     return m_size;
 }

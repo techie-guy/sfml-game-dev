@@ -50,7 +50,8 @@ void GameEngine::init(const std::string& path, const std::string& levelConfigPat
                 istr >> str;
                 int speed = std::stoi(str);
 
-                m_assets.addAnimation(name, textureName, frameCount, speed);
+                Animation animation(name, m_assets.getTexture(textureName), frameCount, speed);
+                m_assets.addAnimation(name, animation);
             }
             else if(str == "Font")
             {
