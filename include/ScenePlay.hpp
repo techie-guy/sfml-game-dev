@@ -14,6 +14,11 @@ class ScenePlay : public Scene
         std::string WEAPON;
     };
 
+    enum CameraTypes
+    {
+        FollowX, FollowXY, Box, Grid, Default
+    };
+
 protected:
     std::string m_levelPath;
     std::shared_ptr<Entity> m_player;
@@ -21,6 +26,7 @@ protected:
     bool m_drawTextures = true;
     bool m_drawGrid = true;
     bool m_drawCollision = true;
+    int m_cameraType = Default;
     const Vec2 m_gridSize = {64, 64};
     sf::Text m_gridText;
 
@@ -38,6 +44,7 @@ protected:
     void sEnemySpawner();
     void sCollision();
     void sRender();
+    void sCamera();
     void sDoAction(const Action& action);
     void sDebug();
 

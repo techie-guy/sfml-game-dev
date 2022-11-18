@@ -81,3 +81,10 @@ public:
     CAnimation() {}
     CAnimation(const Animation& animation, bool r) : animation(animation), repeat(r) {}
 };
+
+class CDraggable : public Component
+{
+public:
+    bool draggable = false;
+    CDraggable();
+};

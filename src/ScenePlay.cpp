@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <cmath>
 
 ScenePlay::ScenePlay(GameEngine* gameEngine, const std::string& levelPath) : Scene(gameEngine), m_levelPath(levelPath)
 {
@@ -25,6 +26,8 @@ void ScenePlay::init(const std::string& levelPath)
 
     m_gridText.setCharacterSize(12);
     m_gridText.setFont(m_game->assets().getFont("Monocraft"));
+
+    m_cameraType = Grid;
 
     loadLevel(levelPath);
 }
@@ -139,7 +142,7 @@ void ScenePlay::spawnBullet()
 {
     auto bullet = m_entityManager.addEntity("bullet");
     bullet->addComponent<CAnimation>(m_game->assets().getAnimation(m_playerConfig.WEAPON), true);
-    bullet->addComponent<CTransform>(m_player->getComponent<CTransform>().pos, m_player->getComponent<CTransform>().pos, Vec2(1.0f, 1.0f), Vec2(10.0f, 0), 0);
+    bullet->addComponent<CTransform>(m_player->getComponent<CTransform>().pos, m_player->getComponent<CTransform>().pos, Vec2((m_player->getComponent<CTransform>().scale.x/abs(m_player->getComponent<CTransform>().scale.x))*1.0f, (m_player->getComponent<CTransform>().scale.y/abs(m_player->getComponent<CTransform>().scale.y))*1.0f), Vec2(abs(m_player->getComponent<CTransform>().scale.x/abs(m_player->getComponent<CTransform>().scale.x))*10.0f, 0), 0);
     bullet->addComponent<CBoundingBox>(bullet->getComponent<CAnimation>().animation.size());
     bullet->addComponent<CLifeSpan>(35, m_currentFrame);
 }
@@ -188,17 +191,23 @@ void ScenePlay::sAnimation()
     }
 }
 
+void ScenePlay::sCamera()
+{
+}
+
 void ScenePlay::sMovement()
 {
     Vec2 playerVelocity(0, 0);
     if(m_player->getComponent<CInput>().right)
     {
         m_player->getComponent<CState>().state = "run";
+        m_player->getComponent<CTransform>().scale.x = 1.0f;
         playerVelocity.x = m_playerConfig.SPEEDX;
     }
     if(m_player->getComponent<CInput>().left)
     {
         m_player->getComponent<CState>().state = "run";
+        m_player->getComponent<CTransform>().scale.x = -1.0f;
         playerVelocity.x = -m_playerConfig.SPEEDX;
     }
     if(m_player->getComponent<CInput>().up && !m_player->getComponent<CInput>().canJump)
@@ -285,7 +294,6 @@ void ScenePlay::sCollision()
                     m_player->getComponent<CTransform>().pos.y += currentOverlap.y;
                     m_player->getComponent<CInput>().canJump = true;
                     m_player->getComponent<CTransform>().velocity.y = 0;
-                    // m_player->getComponent<CState>().state = "idle";
                 }
             }
         }
