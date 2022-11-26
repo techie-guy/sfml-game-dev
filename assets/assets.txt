@@ -18,4 +18,5 @@ Animation Fall2 TexFall2 1 2
 Animation Run2 TexRun2 11 2
 Animation Bullet TexBullet 1 2
 Animation Ground TexTile 1 2
-Font Monocraft assets/fonts/Monocraft.ttf
+Font Monocraft assets/fonts/monocraft-nerd-font.otf
+

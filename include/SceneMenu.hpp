@@ -5,19 +5,23 @@
 #include <memory>
 #include <deque>
 
+#include <SFML/System/String.hpp>
+
 class SceneMenu : public Scene
 {
 protected:
-    std::string m_title;
-    std::vector<std::string> m_menuStrings;
-    std::vector<std::string> m_levelPaths;
-    std::vector<std::string> m_levelTitles;
+    sf::String m_title = "Cool Game";
+    std::vector<sf::String> m_menuStrings;
+    std::vector<sf::String> m_levelPaths;
+    std::vector<sf::String> m_levelTitles;
     sf::Text m_menuText;
     int m_selectedMenuIndex = 0;
+    int m_previousMenuIndex = 0;
 
     void init(const std::string& levelConfigPath);
     void update();
     void onEnd();
+    void updateText();
 
     void sRender();
     void sDoAction(const Action& action);
