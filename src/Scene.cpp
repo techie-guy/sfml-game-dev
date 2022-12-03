@@ -17,6 +17,10 @@ void Scene::sRender()
 {
 }
 
+void Scene::sCamera()
+{
+}
+
 void Scene::simulate(const size_t frames)
 {
 }

@@ -30,8 +30,14 @@ void SceneMenu::init(const std::string& levelConfigPath)
         std::cout << "Error Opening Level Config File\n";
         exit(EXIT_FAILURE);
     }
+    
     while(getline(levelConfigFile, level))
     {
+        if(level == "")
+        {
+            continue;
+        }
+        
         std::stringstream levelStream(level);
         std::string levelPath;
         std::string levelTitle;
@@ -84,6 +90,7 @@ void SceneMenu::updateText()
 
 void SceneMenu::update()
 {
+    sCamera();
     updateText();
     sRender();
 }
@@ -96,6 +103,13 @@ void SceneMenu::onEnd()
 void SceneMenu::doAction(const Action& action)
 {
     sDoAction(action);
+}
+
+void SceneMenu::sCamera()
+{
+    sf::View view = m_game->window().getView();
+    view.setCenter(m_game->window().getSize().x/2, m_game->window().getSize().y/2);
+    m_game->window().setView(view);
 }
 
 void SceneMenu::sRender()

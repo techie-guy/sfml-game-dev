@@ -26,8 +26,8 @@ public:
 class CBoundingBox : public Component
 {
 public:
-    Vec2 size;
-    Vec2 halfSize;
+    Vec2 size = {0, 0};
+    Vec2 halfSize = {0, 0};
 
     CBoundingBox() {}
     CBoundingBox(const Vec2& s) : size(s), halfSize(s.x/2, s.y/2) {}

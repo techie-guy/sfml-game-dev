@@ -24,9 +24,9 @@ protected:
     std::shared_ptr<Entity> m_player;
     PlayerConfig m_playerConfig;
     bool m_drawTextures = true;
-    bool m_drawGrid = true;
+    bool m_drawGrid = false;
     bool m_drawCollision = true;
-    int m_cameraType = Default;
+    int m_cameraType = FollowX;
     const Vec2 m_gridSize = {64, 64};
     sf::Text m_gridText;
 
@@ -36,6 +36,8 @@ protected:
 
     void spawnPlayer();
     void spawnBullet();
+    void drawGrid();
+    void drawLine(const Vec2& start, const Vec2& end);
     void onEnd();
 
     void sAnimation();

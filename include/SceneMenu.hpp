@@ -24,6 +24,7 @@ protected:
     void updateText();
 
     void sRender();
+    void sCamera();
     void sDoAction(const Action& action);
 
 public:

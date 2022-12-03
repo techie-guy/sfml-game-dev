@@ -1,10 +1,12 @@
 #include "ScenePlay.hpp"
+#include "SceneMenu.hpp"
 #include "GameEngine.hpp"
 #include "Physics.hpp"
 
 #include <fstream>
 #include <sstream>
 #include <cmath>
+#include <SFML/Graphics/Vertex.hpp>
 
 ScenePlay::ScenePlay(GameEngine* gameEngine, const std::string& levelPath) : Scene(gameEngine), m_levelPath(levelPath)
 {
@@ -26,8 +28,6 @@ void ScenePlay::init(const std::string& levelPath)
 
     m_gridText.setCharacterSize(12);
     m_gridText.setFont(m_game->assets().getFont("Monocraft"));
-
-    m_cameraType = Grid;
 
     loadLevel(levelPath);
 }
@@ -60,8 +60,8 @@ void ScenePlay::loadLevel(const std::string& filename)
 
                 auto tile = m_entityManager.addEntity("tile");
                 tile->addComponent<CAnimation>(m_game->assets().getAnimation(animationName), true);
-                tile->addComponent<CTransform>(gridToMidPixel(x, y, tile), gridToMidPixel(x, y, tile), Vec2(1, 1), Vec2(0, 0), 0);
                 tile->addComponent<CBoundingBox>(tile->getComponent<CAnimation>().animation.size());
+                tile->addComponent<CTransform>(gridToMidPixel(x, y, tile), gridToMidPixel(x, y, tile), Vec2(1, 1), Vec2(0, 0), 0);
             }
             else if(str == "Player")
             {
@@ -100,9 +100,8 @@ void ScenePlay::loadLevel(const std::string& filename)
 
 Vec2 ScenePlay::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity)
 {
-    Vec2 pos(gridX * m_gridSize.x, gridY * m_gridSize.y);
-    Vec2 animSize = entity->getComponent<CAnimation>().animation.size();
-    Vec2 centerPos = pos - (animSize/Vec2(2.0f, 2.0f));
+    Vec2 pos((gridX-1) * m_gridSize.x, gridY * m_gridSize.y);
+    Vec2 centerPos = pos + (entity->getComponent<CBoundingBox>().size/Vec2(2.0, 2.0));
 
     return centerPos;
 }
@@ -116,10 +115,11 @@ void ScenePlay::update()
 {
     m_currentFrame++;
     m_entityManager.update();
+    sCamera();
+    sMovement();
     sCollision();
     sLifeSpan();
     sAnimation();
-    sMovement();
     sEnemySpawner();
     sRender();
     sDebug();
@@ -130,9 +130,9 @@ void ScenePlay::spawnPlayer()
 {
     auto player = m_entityManager.addEntity("player");
     player->addComponent<CAnimation>(m_game->assets().getAnimation(m_playerConfig.IDLE), true);
+    player->addComponent<CBoundingBox>(Vec2(m_playerConfig.CX, m_playerConfig.CY));
     player->addComponent<CTransform>(gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, player), gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, player), Vec2(1.0f, 1.0f), Vec2(m_playerConfig.SPEEDX, m_playerConfig.SPEEDY), 0);
     player->addComponent<CGravity>(m_playerConfig.GRAVITY);
-    player->addComponent<CBoundingBox>(Vec2(m_playerConfig.CX, m_playerConfig.CY));
     player->getComponent<CInput>().canShoot = true;
 
     m_player = player;
@@ -141,8 +141,9 @@ void ScenePlay::spawnPlayer()
 void ScenePlay::spawnBullet()
 {
     auto bullet = m_entityManager.addEntity("bullet");
+    int directionX = m_player->getComponent<CTransform>().scale.x/abs(m_player->getComponent<CTransform>().scale.x);
     bullet->addComponent<CAnimation>(m_game->assets().getAnimation(m_playerConfig.WEAPON), true);
-    bullet->addComponent<CTransform>(m_player->getComponent<CTransform>().pos, m_player->getComponent<CTransform>().pos, Vec2((m_player->getComponent<CTransform>().scale.x/abs(m_player->getComponent<CTransform>().scale.x))*1.0f, (m_player->getComponent<CTransform>().scale.y/abs(m_player->getComponent<CTransform>().scale.y))*1.0f), Vec2(abs(m_player->getComponent<CTransform>().scale.x/abs(m_player->getComponent<CTransform>().scale.x))*10.0f, 0), 0);
+    bullet->addComponent<CTransform>(m_player->getComponent<CTransform>().pos, m_player->getComponent<CTransform>().pos, Vec2(1.0f*directionX, 1.0f), Vec2(10.0f*directionX, 0), 0);
     bullet->addComponent<CBoundingBox>(bullet->getComponent<CAnimation>().animation.size());
     bullet->addComponent<CLifeSpan>(35, m_currentFrame);
 }
@@ -150,6 +151,33 @@ void ScenePlay::spawnBullet()
 void ScenePlay::doAction(const Action& action)
 {
     sDoAction(action);
+}
+
+void ScenePlay::drawGrid()
+{
+    int rows = (m_game->window().getView().getSize().x + m_game->window().getView().getCenter().x)/m_gridSize.x;
+    int cols = (m_game->window().getView().getSize().y + m_game->window().getView().getCenter().y)/m_gridSize.y;
+
+    for(int row = 0; row <= rows; row++)
+    {
+        drawLine(Vec2(row*m_gridSize.x, 0), Vec2(row*m_gridSize.y, cols*m_gridSize.y));
+    }
+    
+    for(int col = 0; col <= cols; col++)
+    {
+        drawLine(Vec2(0, col*m_gridSize.y), Vec2(rows*m_gridSize.x, col*m_gridSize.y));
+    }
+}
+
+void ScenePlay::drawLine(const Vec2& start, const Vec2& end)
+{
+    sf::Vertex line[] =
+    {
+        sf::Vertex(sf::Vector2f(start.x, start.y)),
+        sf::Vertex(sf::Vector2f(end.x, end.y))
+    };
+
+    m_game->window().draw(line, 2, sf::Lines);
 }
 
 // Systems
@@ -193,6 +221,25 @@ void ScenePlay::sAnimation()
 
 void ScenePlay::sCamera()
 {
+    sf::View view = m_game->window().getView();
+
+    if(m_cameraType == FollowX)
+    {
+        if(m_player->getComponent<CTransform>().pos.x >= m_game->window().getSize().x/2)
+        {
+            view.setCenter(m_player->getComponent<CTransform>().prevPos.x, m_game->window().getSize().y/2);
+        }
+    }
+    else if(m_cameraType == FollowXY)
+    {
+        view.setCenter(m_player->getComponent<CTransform>().prevPos.x, m_player->getComponent<CTransform>().prevPos.y);
+    }
+    else if(m_cameraType == Default)
+    {
+        view.setCenter(m_game->window().getSize().x/2, m_game->window().getSize().y/2);
+    }
+
+    m_game->window().setView(view);
 }
 
 void ScenePlay::sMovement()
@@ -204,21 +251,24 @@ void ScenePlay::sMovement()
         m_player->getComponent<CTransform>().scale.x = 1.0f;
         playerVelocity.x = m_playerConfig.SPEEDX;
     }
+    
     if(m_player->getComponent<CInput>().left)
     {
         m_player->getComponent<CState>().state = "run";
         m_player->getComponent<CTransform>().scale.x = -1.0f;
         playerVelocity.x = -m_playerConfig.SPEEDX;
     }
-    if(m_player->getComponent<CInput>().up && !m_player->getComponent<CInput>().canJump)
-    {
-        m_player->getComponent<CState>().state = "jump";
-        playerVelocity.y = m_playerConfig.SPEEDY;
-    }
+    
     if(m_player->getComponent<CInput>().shoot && m_player->getComponent<CInput>().canShoot)
     {
         spawnBullet();
         m_player->getComponent<CInput>().canShoot = false;
+    }
+
+    if(m_player->getComponent<CInput>().up && m_player->getComponent<CInput>().canJump)
+    {
+        m_player->getComponent<CState>().state = "jump";
+        playerVelocity.y = m_playerConfig.SPEEDY;
     }
 
     if(playerVelocity.x == 0 && playerVelocity.y == 0)
@@ -239,11 +289,11 @@ void ScenePlay::sMovement()
         e->getComponent<CTransform>().pos += e->getComponent<CTransform>().velocity;
     }
 
-    if(m_player->getComponent<CTransform>().velocity.x > m_playerConfig.MAXSPEED)
+    if(m_player->getComponent<CTransform>().velocity.x >= m_playerConfig.MAXSPEED)
     {
         m_player->getComponent<CTransform>().velocity.x = m_playerConfig.MAXSPEED;
     }
-    else if(m_player->getComponent<CTransform>().velocity.y > m_playerConfig.MAXSPEED)
+    if(m_player->getComponent<CTransform>().velocity.y >= m_playerConfig.MAXSPEED)
     {
         m_player->getComponent<CTransform>().velocity.y = m_playerConfig.MAXSPEED;
     }
@@ -277,13 +327,18 @@ void ScenePlay::sCollision()
     {
         Vec2 previousOverlap = Physics::GetPreviousOverlap(m_player, tile);
         Vec2 currentOverlap = Physics::GetOverlap(m_player, tile);
+
+        // std::cout << m_player->getComponent<CTransform>().pos << "\n";
+
+        // std::cout << "Current Overlap: " << currentOverlap << "\n";
+        // std::cout << "Previous Overlap: " << previousOverlap << "\n";
         if(previousOverlap.x > 0)
         {
             if(currentOverlap.y > 0)
             {
                 if(m_player->getComponent<CTransform>().pos.y < tile->getComponent<CTransform>().pos.y)
                 {
-                    m_player->getComponent<CInput>().canJump = false;
+                    m_player->getComponent<CInput>().canJump = true;
                     m_player->getComponent<CTransform>().pos.y -= currentOverlap.y;
                     m_player->getComponent<CTransform>().velocity.y = 0;
                     if(m_player->getComponent<CTransform>().velocity.x == 0)
@@ -291,13 +346,28 @@ void ScenePlay::sCollision()
                 }
                 else if(m_player->getComponent<CTransform>().pos.y > tile->getComponent<CTransform>().pos.y)
                 {
+                    tile->destroy();
                     m_player->getComponent<CTransform>().pos.y += currentOverlap.y;
-                    m_player->getComponent<CInput>().canJump = true;
+                    m_player->getComponent<CInput>().canJump = false;
                     m_player->getComponent<CTransform>().velocity.y = 0;
+                    if(m_player->getComponent<CTransform>().velocity.x == 0)
+                        m_player->getComponent<CState>().state = "idle";
                 }
             }
+            // else
+            // {
+            //     if(m_player->getComponent<CTransform>().velocity.y > 0)
+            //     {
+            //         m_player->getComponent<CInput>().canJump = true;
+            //         m_player->getComponent<CState>().state = "fall";
+            //     }
+            // }
+
+            // Fall if:
+            // 1. Player not touching ground
+            // 2. Player not jumping
         }
-        if(previousOverlap.y > 0)
+        else if(previousOverlap.y > 0)
         {
             if(currentOverlap.x > 0)
             {
@@ -311,30 +381,19 @@ void ScenePlay::sCollision()
                 }
             }
         }
-        if(currentOverlap.y < 0)
+
+        if(!(currentOverlap.x > 0 && currentOverlap.y > 0))
         {
-            if(m_player->getComponent<CTransform>().velocity.y > 0)
+            if(m_player->getComponent<CTransform>().velocity.y > 0 && (m_player->getComponent<CTransform>().pos.x == m_player->getComponent<CTransform>().prevPos.x))
             {
-                m_player->getComponent<CInput>().canJump = true;
+                m_player->getComponent<CInput>().canJump = false;
                 m_player->getComponent<CState>().state = "fall";
             }
         }
 
-        if(m_player->getComponent<CTransform>().pos.x > m_game->window().getSize().x)
+        if(m_player->getComponent<CTransform>().pos.y > m_game->window().getView().getSize().y)
         {
-            m_player->getComponent<CTransform>().pos.x = m_game->window().getSize().x;
-        }
-        else if(m_player->getComponent<CTransform>().pos.y > m_game->window().getSize().y)
-        {
-            m_player->getComponent<CTransform>().pos.y = m_playerConfig.Y;
-        }
-        else if(m_player->getComponent<CTransform>().pos.x < 0)
-        {
-            m_player->getComponent<CTransform>().pos.x = 0;
-        }
-        else if(m_player->getComponent<CTransform>().pos.y < 0)
-        {
-            m_player->getComponent<CTransform>().pos.y = 0;
+            m_game->changeScene("Menu", m_game->getScene("Menu"));
         }
 
         for(auto& bullet : m_entityManager.getEntities("bullet"))
@@ -354,7 +413,24 @@ void ScenePlay::sRender()
 {
     for(auto& entity : m_entityManager.getEntities())
     {
-        m_game->window().draw(entity->getComponent<CAnimation>().animation.sprite());
+        if(m_drawTextures)
+        {
+            m_game->window().draw(entity->getComponent<CAnimation>().animation.sprite());
+        }
+        if(m_drawCollision)
+        {
+            sf::RectangleShape hitbox;
+            hitbox.setSize(sf::Vector2f(entity->getComponent<CBoundingBox>().size.x, entity->getComponent<CBoundingBox>().size.y));
+            hitbox.setOutlineColor(sf::Color::Red);
+            hitbox.setOutlineThickness(3);
+            hitbox.setFillColor(sf::Color(0, 0, 0, 0));
+            hitbox.setPosition(entity->getComponent<CTransform>().pos.x-entity->getComponent<CBoundingBox>().halfSize.x, entity->getComponent<CTransform>().pos.y-entity->getComponent<CBoundingBox>().halfSize.y);
+            m_game->window().draw(hitbox);
+        }
+    }
+    if(m_drawGrid)
+    {
+        drawGrid();
     }
 }
 
@@ -422,4 +498,5 @@ void ScenePlay::sDoAction(const Action& action)
 
 void ScenePlay::sDebug()
 {
+    // std::cout << m_player->getComponent<CState>().state << "\n";
 }

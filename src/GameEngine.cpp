@@ -12,7 +12,7 @@ GameEngine::GameEngine(const std::string& path, const std::string& levelConfigPa
 
 void GameEngine::init(const std::string& path, const std::string& levelConfigPath)
 {
-    m_window.create(sf::VideoMode(1280, 720), "2D Game Engine");
+    m_window.create(sf::VideoMode(1280, 768), "Cool Game");
     m_window.setVerticalSyncEnabled(true);
 
     // Loading all the Assets
@@ -26,6 +26,10 @@ void GameEngine::init(const std::string& path, const std::string& levelConfigPat
 
     while(getline(assetFile, asset))
     {
+        if(asset == "")
+        {
+            continue;
+        }
         std::istringstream istr(asset);
         std::string str;
         while(istr >> str)
@@ -71,7 +75,7 @@ void GameEngine::init(const std::string& path, const std::string& levelConfigPat
 void GameEngine::update()
 {
     while (m_running)
-    {
+    {            
         m_window.clear();
 
         sUserInput();
